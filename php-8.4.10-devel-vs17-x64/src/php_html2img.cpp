@@ -150,7 +150,6 @@ PHP_FUNCTION(html_css_to_image)
     }
     std::filesystem::path font_dir = html2img::resolve_asset(HTML2IMG_G(font_path), script_dir, false);
     GDContainer cont(dummy, script_dir, font_dir, HTML2IMG_G(allow_remote));
-
     static const std::regex font_face_re("@font-face\\s*\\{[^}]*font-family:\\s*['\"]?([^;\"']+)['\"]?;[^}]*src:\\s*url\\(['\"]?([^\"')]+)['\"]?\)", std::regex::icase);
     for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
         std::string fam = (*it)[1].str();
