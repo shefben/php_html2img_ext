@@ -11,6 +11,7 @@
 #include <php_ini.h>
 #include <ext/standard/info.h>
 #include <Zend/zend_execute.h>
+#include "path_utils.hpp"
 #include <chrono>
 #include "gd_canvas.hpp"
 #include "gd_container.hpp"
@@ -41,21 +42,6 @@ static void php_html2img_init_globals(zend_html2img_globals *g)
     g->allow_remote = 0;
 }
 
-static std::string strip_file_scheme(const std::string &url)
-{
-    if(url.rfind("file://", 0) == 0) {
-        std::string p = url.substr(7);
-        if(!p.empty() && p[0] == '/') {
-#ifdef _WIN32
-            if(p.size() >= 3 && p[2] == ':') {
-                p.erase(0,1);
-            }
-#endif
-        }
-        return p;
-    }
-    return url;
-}
 
 zend_function_entry html2img_functions[] = {
     /* replace ‘nullptr’ with the arginfo symbol */
@@ -153,18 +139,22 @@ PHP_FUNCTION(html_css_to_image)
     {
         zend_string *exec = zend_get_executed_filename_ex();
         if(exec) {
-            script_dir = std::filesystem::path(ZSTR_VAL(exec)).parent_path();
+            std::filesystem::path abs = html2img::from_file_uri(ZSTR_VAL(exec));
+            if(!abs.is_absolute()) {
+                abs = std::filesystem::absolute(abs);
+            }
+            script_dir = abs.parent_path();
         } else {
             script_dir = std::filesystem::current_path();
         }
     }
-    GDContainer cont(dummy, script_dir, HTML2IMG_G(font_path), HTML2IMG_G(allow_remote));
-
+    std::filesystem::path font_dir = html2img::resolve_asset(HTML2IMG_G(font_path), script_dir, false);
+    GDContainer cont(dummy, script_dir, font_dir, HTML2IMG_G(allow_remote));
     static const std::regex font_face_re("@font-face\\s*\\{[^}]*font-family:\\s*['\"]?([^;\"']+)['\"]?;[^}]*src:\\s*url\\(['\"]?([^\"')]+)['\"]?\)", std::regex::icase);
     for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
         std::string fam = (*it)[1].str();
-        std::string url = strip_file_scheme((*it)[2].str());
-        cont.register_font(fam, url);
+        std::filesystem::path p = html2img::from_file_uri((*it)[2].str());
+        cont.register_font(fam, p);
     }
 
     auto doc = litehtml::document::createFromString(html_str.c_str(), &cont);
@@ -173,11 +163,11 @@ PHP_FUNCTION(html_css_to_image)
     int h = doc->height();
 
     GDCanvas canvas(w? w:1, h? h:1, false);
-    GDContainer cont2(canvas, script_dir, HTML2IMG_G(font_path), HTML2IMG_G(allow_remote));
+    GDContainer cont2(canvas, script_dir, font_dir, HTML2IMG_G(allow_remote));
     for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
         std::string fam = (*it)[1].str();
-        std::string url = strip_file_scheme((*it)[2].str());
-        cont2.register_font(fam, url);
+        std::filesystem::path p = html2img::from_file_uri((*it)[2].str());
+        cont2.register_font(fam, p);
     }
     doc = litehtml::document::createFromString(html_str.c_str(), &cont2);
     doc->render(w);

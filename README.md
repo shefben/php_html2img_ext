@@ -32,4 +32,11 @@ You can also open `html2img.sln` in Visual Studio 2022 and build the `Release|x
 
 ## Asset path resolution
 
-Relative URLs for fonts and images are resolved relative to the PHP script calling `html_css_to_image()`. When referencing assets with `file://` URIs, the extension strips the scheme and handles Windows drive letters so both CLI and Apache SAPI locate the files correctly.
+Relative URLs for fonts and images are resolved relative to the PHP script calling
+`html_css_to_image()`. The helper in `src/path_utils.*` normalises `file://` URIs
+into regular filesystem paths and then joins them with the directory of the
+executing script. This ensures the same HTML works from the CLI and from Apache.
+
+If fonts still fail to render, confirm that `html2img.font_path` points to a
+directory containing TrueType or OpenType fonts. The extension searches this
+directory in addition to any absolute `@font-face` URLs embedded in the HTML.

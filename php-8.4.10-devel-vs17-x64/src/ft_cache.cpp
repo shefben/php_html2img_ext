@@ -23,6 +23,7 @@ FT_Face FtCache::load(const std::filesystem::path &path) {
     if (FT_New_Face(lib_, path.string().c_str(), 0, &face)) {
         return nullptr;
     }
+    FT_Select_Charmap(face, FT_ENCODING_UNICODE);
     cache_[path.string()] = face;
     return face;
 }
