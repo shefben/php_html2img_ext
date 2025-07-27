@@ -1,9 +1,9 @@
-ARG_ENABLE("html2img", "html2img support", "yes")
+ARG_ENABLE("html2img", "html2img support", "yes");
 
 if (PHP_HTML2IMG != "no") {
-    PHP_REQUIRE_CXX()
-    ADD_SOURCES(html2img, "src\php_html2img.cpp src\gd_canvas.cpp src\gd_container.cpp src\cache.cpp src\ft_cache.cpp")
-    ADD_FLAG("CXXFLAGS_HTML2IMG", "/std:c++17")
-    PHP_ADD_INCLUDE("3rdparty\litehtml\include")
-    ADD_LIB("HTML2IMG_SHARED_LIBADD", "gd.lib freetype.lib png.lib jpeg.lib")
+    PHP_REQUIRE_CXX();
+    ADD_SOURCES(html2img, "php_html2img.cpp gd_canvas.cpp gd_container.cpp cache.cpp ft_cache.cpp");
+    ADD_FLAG("CXXFLAGS_HTML2IMG", "/std:c++17");
+    PHP_ADD_INCLUDE("3rdparty\litehtml\include");
+    ADD_LIB("HTML2IMG_SHARED_LIBADD", "gd.lib freetype.lib png.lib jpeg.lib");
 }
