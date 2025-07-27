@@ -28,3 +28,4 @@ Use `bootstrap.sh` to fetch litehtml at the pinned commit and compile the extens
 The script applies `patches/litehtml-static.patch` so litehtml builds as a static library.
 For Windows cross-builds run `build-windows-mingw.sh` or build with Visual Studio using `build-windows-vs17.bat`.
 You can also open `html2img.sln` in Visual Studio 2022 and build the `Release|x64` configuration.
+
