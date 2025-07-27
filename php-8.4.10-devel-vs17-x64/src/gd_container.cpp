@@ -7,6 +7,7 @@
 #include <cstring>
 #include <fstream>
 #include <filesystem>
+#include <cstdio>
 
 GDContainer::GDContainer(GDCanvas& canvas,
                          const std::filesystem::path& base,
@@ -28,6 +29,17 @@ litehtml::uint_ptr GDContainer::create_font(const litehtml::font_description& de
         path = it->second;
     } else {
         path = font_dir_ / descr.family;
+        if(!std::filesystem::exists(path)) {
+            static const char* exts[] = {".ttf", ".otf", ".ttc"};
+            for(const char* ext : exts) {
+                auto candidate = path;
+                candidate += ext;
+                if(std::filesystem::exists(candidate)) {
+                    path = candidate;
+                    break;
+                }
+            }
+        }
     }
     if(std::filesystem::exists(path)) {
         face = ft_.load(path);
@@ -130,4 +142,72 @@ void GDContainer::get_media_features(litehtml::media_features& media) const
     media.width = gdImageSX(canvas_.img());
     media.height = gdImageSY(canvas_.img());
     media.color = 8;
+}
+
+std::filesystem::path GDContainer::resolve_path(const std::string& src, const std::string& base)
+{
+    if(src.rfind("file://", 0) == 0) {
+        return std::filesystem::path(src.substr(7));
+    }
+    if(src.find("://") != std::string::npos) {
+        return allow_remote_ ? std::filesystem::path(src) : std::filesystem::path();
+    }
+    std::filesystem::path b = base.empty() ? base_path_ : std::filesystem::path(base);
+    return b / src;
+}
+
+gdImagePtr GDContainer::load_image_internal(const std::string& src, const std::string& base)
+{
+    auto it = image_cache_.find(src);
+    if(it != image_cache_.end()) return it->second.img;
+
+    auto path = resolve_path(src, base);
+    if(path.empty() || !std::filesystem::exists(path)) return nullptr;
+
+    FILE* f = fopen(path.string().c_str(), "rb");
+    if(!f) return nullptr;
+    gdImagePtr im = nullptr;
+    auto ext = path.extension().string();
+    if(ext == ".png") im = gdImageCreateFromPng(f);
+    else if(ext == ".gif") im = gdImageCreateFromGif(f);
+    else if(ext == ".jpg" || ext == ".jpeg") im = gdImageCreateFromJpeg(f);
+#ifdef HAVE_GD_BMP
+    else if(ext == ".bmp") im = gdImageCreateFromBmp(f);
+#endif
+    fclose(f);
+    if(im) {
+        gdImageAlphaBlending(im, 0);
+        gdImageSaveAlpha(im, 1);
+        image_cache_[src] = {im, gdImageSX(im), gdImageSY(im)};
+    }
+    return im;
+}
+
+void GDContainer::load_image(const char* src, const char* baseurl, bool)
+{
+    load_image_internal(src ? src : "", baseurl ? baseurl : "");
+}
+
+void GDContainer::get_image_size(const char* src, const char* baseurl, litehtml::size& sz)
+{
+    auto img = load_image_internal(src ? src : "", baseurl ? baseurl : "");
+    if(img) {
+        sz.width = gdImageSX(img);
+        sz.height = gdImageSY(img);
+    } else {
+        sz.width = sz.height = 0;
+    }
+}
+
+void GDContainer::draw_image(litehtml::uint_ptr, const litehtml::background_layer& layer, const std::string& url, const std::string& base_url)
+{
+    auto img = load_image_internal(url, base_url);
+    if(!img) return;
+    int dst_w = layer.clip_box.width();
+    int dst_h = layer.clip_box.height();
+    if(dst_w <= 0 || dst_h <= 0) return;
+    gdImageCopyResampled(canvas_.img(), img,
+                         layer.clip_box.left(), layer.clip_box.top(),
+                         0, 0, dst_w, dst_h,
+                         gdImageSX(img), gdImageSY(img));
 }
