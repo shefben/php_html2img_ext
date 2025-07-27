@@ -29,3 +29,7 @@ The script applies `patches/litehtml-static.patch` so litehtml builds as a stati
 For Windows cross-builds run `build-windows-mingw.sh` or build with Visual Studio using `build-windows-vs17.bat`.
 You can also open `html2img.sln` in Visual Studio 2022 and build the `Release|x64` configuration.
 
+
+## Asset path resolution
+
+Relative URLs for fonts and images are resolved relative to the PHP script calling `html_css_to_image()`. When referencing assets with `file://` URIs, the extension strips the scheme and handles Windows drive letters so both CLI and Apache SAPI locate the files correctly.

@@ -147,7 +147,13 @@ void GDContainer::get_media_features(litehtml::media_features& media) const
 std::filesystem::path GDContainer::resolve_path(const std::string& src, const std::string& base)
 {
     if(src.rfind("file://", 0) == 0) {
-        return std::filesystem::path(src.substr(7));
+        std::string p = src.substr(7);
+        if(!p.empty() && p[0]=='/') {
+#ifdef _WIN32
+            if(p.size() >= 3 && p[2]==':') p.erase(0,1);
+#endif
+        }
+        return std::filesystem::path(p);
     }
     if(src.find("://") != std::string::npos) {
         return allow_remote_ ? std::filesystem::path(src) : std::filesystem::path();
