@@ -5,6 +5,7 @@
 #include "string_id.h"
 #include "types.h"
 #include "web_color.h"
+#include <optional>
 
 namespace litehtml
 {
@@ -105,8 +106,8 @@ namespace litehtml
 		public:
 			bool is_color_hint = false;
 			web_color color;
-			optional<css_length> length;
-			optional<float> angle;
+			std::optional<css_length> length;
+			std::optional<float> angle;
 
 			color_stop() {}
 			color_stop(web_color color)                    : color(color)                        {}

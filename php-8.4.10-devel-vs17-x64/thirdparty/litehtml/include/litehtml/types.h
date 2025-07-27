@@ -18,7 +18,6 @@ namespace litehtml
 	using std::vector;
 	using std::shared_ptr;
 	using std::make_shared;
-	using std::optional;
 	using std::min;
 	using std::max;
 	using std::swap;

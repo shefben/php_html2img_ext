@@ -4170,7 +4170,7 @@ if (PHP_HTML2IMG != "no") {
 
     /* 1) Core sources (contain MINIT/MINFO/…) */
     EXTENSION("html2img",
-        "php_html2img.cpp gd_canvas.cpp gd_container.cpp cache.cpp ft_cache.cpp");
+        "php_html2img.cpp gd_canvas.cpp gd_container.cpp cache.cpp ft_cache.cpp path_utils.cpp");
 
     /* 2) Extra C++ sources */
     ADD_SOURCES("html2img",
