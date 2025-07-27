@@ -20,13 +20,13 @@ set_property(TARGET litehtml PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(PHP_INCLUDES)
     include_directories(${PHP_INCLUDES} 3rdparty/litehtml/include)
-    add_library(html2img SHARED src/php_html2img.cpp src/gd_canvas.cpp src/gd_container.cpp src/ft_cache.cpp src/cache.cpp)
+    add_library(html2img SHARED php_html2img.cpp gd_canvas.cpp gd_container.cpp ft_cache.cpp cache.cpp)
     target_link_libraries(html2img litehtml ${GD_LIBRARIES} Freetype::Freetype OpenSSL::Crypto)
 endif()
 
 if(BUILD_TESTS)
     enable_testing()
-    add_executable(gd_backend_test tests/gd_backend_test.cpp src/gd_canvas.cpp src/gd_container.cpp src/ft_cache.cpp src/cache.cpp)
+    add_executable(gd_backend_test tests/gd_backend_test.cpp gd_canvas.cpp gd_container.cpp ft_cache.cpp cache.cpp)
     target_link_libraries(gd_backend_test litehtml ${GD_LIBRARIES} Freetype::Freetype OpenSSL::Crypto gtest gtest_main)
     add_test(NAME gd_backend_test COMMAND gd_backend_test)
 
