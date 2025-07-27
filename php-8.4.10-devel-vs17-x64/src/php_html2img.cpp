@@ -4,12 +4,12 @@
 #include <variant>
 #include <optional>
 #include <filesystem>
+#include <regex>
 #include <litehtml.h>   // or whatever header you use next
 
 #include <php.h>
 #include <php_ini.h>
 #include <ext/standard/info.h>
-#include <filesystem>
 #include <chrono>
 #include "gd_canvas.hpp"
 #include "gd_container.hpp"
@@ -135,6 +135,14 @@ PHP_FUNCTION(html_css_to_image)
     std::filesystem::path cwd = std::filesystem::current_path();
     GDContainer cont(dummy, cwd, HTML2IMG_G(font_path), HTML2IMG_G(allow_remote));
 
+    static const std::regex font_face_re("@font-face\\s*\\{[^}]*font-family:\\s*['\"]?([^;\"']+)['\"]?;[^}]*src:\\s*url\\(['\"]?([^\"')]+)['\"]?\)", std::regex::icase);
+    for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
+        std::string fam = (*it)[1].str();
+        std::string url = (*it)[2].str();
+        if(url.rfind("file://",0)==0) url = url.substr(7);
+        cont.register_font(fam, url);
+    }
+
     auto doc = litehtml::document::createFromString(html_str.c_str(), &cont);
     doc->render(800);
     int w = doc->width();
@@ -142,6 +150,12 @@ PHP_FUNCTION(html_css_to_image)
 
     GDCanvas canvas(w? w:1, h? h:1, false);
     GDContainer cont2(canvas, cwd, HTML2IMG_G(font_path), HTML2IMG_G(allow_remote));
+    for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
+        std::string fam = (*it)[1].str();
+        std::string url = (*it)[2].str();
+        if(url.rfind("file://",0)==0) url = url.substr(7);
+        cont2.register_font(fam, url);
+    }
     doc = litehtml::document::createFromString(html_str.c_str(), &cont2);
     doc->render(w);
     litehtml::position clip(0,0,w,h);
