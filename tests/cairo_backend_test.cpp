@@ -1,31 +1,31 @@
 #include <gtest/gtest.h>
-#include "../src/gd_canvas.hpp"
-#include "../src/gd_container.hpp"
+#include "../php-8.4.10-devel-vs17-x64/src/cairo_canvas.hpp"
+#include "../php-8.4.10-devel-vs17-x64/src/cairo_container.hpp"
 #include <litehtml.h>
 
 TEST(TransparentSurfaceTest, AlphaZeroWhenNoBackground)
 {
-    GDCanvas canvas(10,10,false);
-    GDContainer cont(canvas, ".", "./", false);
+    CairoCanvas canvas(10,10,false);
+    CairoContainer cont(canvas, ".", "./", false);
     auto doc = litehtml::document::createFromString("<div style=\"width:10px;height:10px\"></div>", &cont);
     doc->render(10);
     litehtml::position clip(0,0,10,10);
     doc->draw(0,0,0,&clip);
-    int c = gdImageGetTrueColorPixel(canvas.img(),0,0);
-    EXPECT_EQ(gdTrueColorGetAlpha(c), 127);
+    unsigned char* data = cairo_image_surface_get_data(canvas.surface());
+    EXPECT_EQ(data[3], 0);
 }
 
 TEST(OpaqueSurfaceTest, BackgroundFill)
 {
     const char* html = "<div style=\"background:#7B7F8D;width:10px;height:10px\"></div>";
-    GDCanvas canvas(10,10,true, gdTrueColor(0x7B,0x7F,0x8D));
-    GDContainer cont(canvas, ".", "./", false);
+    CairoCanvas canvas(10,10,true, 0x7B7F8D);
+    CairoContainer cont(canvas, ".", "./", false);
     auto doc = litehtml::document::createFromString(html, &cont);
     doc->render(10);
     litehtml::position clip(0,0,10,10);
     doc->draw(0,0,0,&clip);
-    int c = gdImageGetTrueColorPixel(canvas.img(),0,0);
-    EXPECT_EQ(gdTrueColorGetAlpha(c), 0);
+    unsigned char* data = cairo_image_surface_get_data(canvas.surface());
+    EXPECT_EQ(data[3], 255);
 }
 
 int main(int argc, char** argv)

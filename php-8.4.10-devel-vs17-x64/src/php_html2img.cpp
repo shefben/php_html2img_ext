@@ -13,8 +13,8 @@
 #include <Zend/zend_execute.h>
 #include "path_utils.hpp"
 #include <chrono>
-#include "gd_canvas.hpp"
-#include "gd_container.hpp"
+#include "cairo_canvas.hpp"
+#include "cairo_container.hpp"
 #include "cache.hpp"
 #include "php_html2img_arginfo.h"   /* add after other #includes */
 
@@ -134,7 +134,7 @@ PHP_FUNCTION(html_css_to_image)
         RETURN_STRING(file.string().c_str());
     }
 
-    GDCanvas dummy(1,1,false);
+    CairoCanvas dummy(1,1,false);
     std::filesystem::path script_dir;
     {
         zend_string *exec = zend_get_executed_filename_ex();
@@ -149,7 +149,7 @@ PHP_FUNCTION(html_css_to_image)
         }
     }
     std::filesystem::path font_dir = html2img::resolve_asset(HTML2IMG_G(font_path), script_dir, false);
-    GDContainer cont(dummy, script_dir, font_dir, HTML2IMG_G(allow_remote));
+    CairoContainer cont(dummy, script_dir, font_dir, HTML2IMG_G(allow_remote));
     static const std::regex font_face_re("@font-face\\s*\\{[^}]*font-family:\\s*['\"]?([^;\"']+)['\"]?;[^}]*src:\\s*url\\(['\"]?([^\"')]+)['\"]?\)", std::regex::icase);
     for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
         std::string fam = (*it)[1].str();
@@ -162,8 +162,8 @@ PHP_FUNCTION(html_css_to_image)
     int w = doc->width();
     int h = doc->height();
 
-    GDCanvas canvas(w? w:1, h? h:1, false);
-    GDContainer cont2(canvas, script_dir, font_dir, HTML2IMG_G(allow_remote));
+    CairoCanvas canvas(w? w:1, h? h:1, false);
+    CairoContainer cont2(canvas, script_dir, font_dir, HTML2IMG_G(allow_remote));
     for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
         std::string fam = (*it)[1].str();
         std::filesystem::path p = html2img::from_file_uri((*it)[2].str());
