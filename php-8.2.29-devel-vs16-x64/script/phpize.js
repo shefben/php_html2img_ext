@@ -1,4 +1,4 @@
-var PHP_PREFIX="C:\\php"
+var PHP_PREFIX="F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-src"
 var PHP_ZTS="No"
 var VC_VERSION=1929
 var PHP_VERSION=8
