@@ -29,3 +29,14 @@ The script applies `patches/litehtml-static.patch` so litehtml builds as a stati
 For Windows cross-builds run `build-windows-mingw.sh` or build with Visual Studio using `build-windows-vs17.bat`.
 You can also open `html2img.sln` in Visual Studio 2022 and build the `Release|x64` configuration.
 
+
+## Asset path resolution
+
+Relative URLs for fonts and images are resolved relative to the PHP script calling
+`html_css_to_image()`. The helper in `src/path_utils.*` normalises `file://` URIs
+into regular filesystem paths and then joins them with the directory of the
+executing script. This ensures the same HTML works from the CLI and from Apache.
+
+If fonts still fail to render, confirm that `html2img.font_path` points to a
+directory containing TrueType or OpenType fonts. The extension searches this
+directory in addition to any absolute `@font-face` URLs embedded in the HTML.

@@ -8,6 +8,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cstdio>
+#include "path_utils.hpp"
 
 GDContainer::GDContainer(GDCanvas& canvas,
                          const std::filesystem::path& base,
@@ -43,6 +44,13 @@ litehtml::uint_ptr GDContainer::create_font(const litehtml::font_description& de
     }
     if(std::filesystem::exists(path)) {
         face = ft_.load(path);
+    }
+    if(!face && descr.family != "Arial") {
+        // fallback to Arial if requested font not found
+        auto fallback = font_dir_ / "Arial.ttf";
+        if(std::filesystem::exists(fallback)) {
+            face = ft_.load(fallback);
+        }
     }
     if(face) {
         FT_Set_Pixel_Sizes(face, 0, descr.size);
@@ -146,14 +154,8 @@ void GDContainer::get_media_features(litehtml::media_features& media) const
 
 std::filesystem::path GDContainer::resolve_path(const std::string& src, const std::string& base)
 {
-    if(src.rfind("file://", 0) == 0) {
-        return std::filesystem::path(src.substr(7));
-    }
-    if(src.find("://") != std::string::npos) {
-        return allow_remote_ ? std::filesystem::path(src) : std::filesystem::path();
-    }
     std::filesystem::path b = base.empty() ? base_path_ : std::filesystem::path(base);
-    return b / src;
+    return html2img::resolve_asset(src, b, allow_remote_);
 }
 
 gdImagePtr GDContainer::load_image_internal(const std::string& src, const std::string& base)

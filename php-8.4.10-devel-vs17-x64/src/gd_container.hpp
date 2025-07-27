@@ -6,6 +6,7 @@
 #include <litehtml.h>
 #include "gd_canvas.hpp"
 #include "ft_cache.hpp"
+#include "path_utils.hpp"
 #include <filesystem>
 #include <unordered_map>
 
