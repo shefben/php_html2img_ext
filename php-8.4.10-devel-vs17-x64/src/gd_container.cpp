@@ -28,6 +28,17 @@ litehtml::uint_ptr GDContainer::create_font(const litehtml::font_description& de
         path = it->second;
     } else {
         path = font_dir_ / descr.family;
+        if(!std::filesystem::exists(path)) {
+            static const char* exts[] = {".ttf", ".otf", ".ttc"};
+            for(const char* ext : exts) {
+                auto candidate = path;
+                candidate += ext;
+                if(std::filesystem::exists(candidate)) {
+                    path = candidate;
+                    break;
+                }
+            }
+        }
     }
     if(std::filesystem::exists(path)) {
         face = ft_.load(path);
