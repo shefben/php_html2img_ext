@@ -203,8 +203,8 @@ void GDContainer::draw_image(litehtml::uint_ptr, const litehtml::background_laye
 {
     auto img = load_image_internal(url, base_url);
     if(!img) return;
-    int dst_w = layer.clip_box.width();
-    int dst_h = layer.clip_box.height();
+    int dst_w = layer.clip_box.width;
+    int dst_h = layer.clip_box.height;
     if(dst_w <= 0 || dst_h <= 0) return;
     gdImageCopyResampled(canvas_.img(), img,
                          layer.clip_box.left(), layer.clip_box.top(),
