@@ -7,6 +7,7 @@
 #include <RmlUi/Core.h>
 #include "path_utils.hpp"
 #include "cairo_canvas.hpp"
+#include "rml_file_interface.hpp"
 #include "rml_cairo_renderer.hpp"
 #include "php_html2img_arginfo.h"
 
@@ -89,6 +90,8 @@ PHP_FUNCTION(html_file_to_image)
     static bool init = false;
     if(!init) { Rml::Initialise(); init = true; }
 
+    RmlFileInterface file_iface(base);
+    Rml::SetFileInterface(&file_iface);
     CairoCanvas canvas(800,600,true,0xFFFFFF);
     CairoRenderInterface renderer(canvas);
     Rml::SetRenderInterface(&renderer);
@@ -103,6 +106,7 @@ PHP_FUNCTION(html_file_to_image)
     context->Render();
     context->UnloadDocument(doc);
     Rml::RemoveRenderInterface();
+    Rml::SetFileInterface(nullptr);
 
     canvas.export_image(out_file.string(), fmt);
 
