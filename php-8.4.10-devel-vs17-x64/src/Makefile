@@ -64,7 +64,7 @@ PHP_SIMD_SCALE=SSE2
 
 CFLAGS_PHP=/D _USRDLL /D PHP_EXPORTS /D LIBZEND_EXPORTS /D TSRM_EXPORTS /D SAPI_EXPORTS /D WINVER=0x0602 /D COMPILE_DL_HTML2IMG 
 
-HTML2IMG_GLOBAL_OBJS=$(BUILD_DIR)\\cache.obj $(BUILD_DIR)\\ft_cache.obj $(BUILD_DIR)\\gd_canvas.obj $(BUILD_DIR)\\gd_container.obj $(BUILD_DIR)\\path_utils.obj $(BUILD_DIR)\\php_html2img.obj 
+HTML2IMG_GLOBAL_OBJS=$(BUILD_DIR)\\cache.obj $(BUILD_DIR)\\cairo_canvas.obj $(BUILD_DIR)\\cairo_container.obj $(BUILD_DIR)\\ft_cache.obj $(BUILD_DIR)\\path_utils.obj $(BUILD_DIR)\\php_html2img.obj 
 
 HTML2IMG_GLOBAL_OBJS_RESP=@"F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\x64\Release\resp\HTML2IMG_GLOBAL_OBJS.txt" 
 
@@ -78,11 +78,11 @@ PHP_GLOBAL_OBJS=$(BUILD_DIR)\\
 
 PHP_GLOBAL_OBJS_RESP=@"F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\x64\Release\resp\PHP_GLOBAL_OBJS.txt" 
 
-CFLAGS_HTML2IMG=/D ZEND_COMPILE_DL_EXT=1 /D COMPILE_DL_HTML2IMG /D HTML2IMG_EXPORTS=1 /std:c++17 /MT /EHsc /DWIN32 /DNDEBUG /DHTML2IMG_EXPORTS /D_UNICODE /DUNICODE /I ..\thirdparty\litehtml\src\gumbo\include /I ..\thirdparty\litehtml\src\gumbo\visualc\include /I ..\thirdparty\litehtml\src\gumbo\include\gumbo /I F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\libgd-2.3.3\src /I F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\thirdparty\litehtml\include /I F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\thirdparty\litehtml\include\litehtml /I F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\include\freetype2 
+CFLAGS_HTML2IMG=/D ZEND_COMPILE_DL_EXT=1 /D COMPILE_DL_HTML2IMG /D HTML2IMG_EXPORTS=1 /std:c++17 /DCAIRO_WIN32_STATIC_BUILD /MT /EHsc /DWIN32 /DNDEBUG /DHTML2IMG_EXPORTS /D_UNICODE /DUNICODE /I ..\thirdparty\litehtml\src\gumbo\include /I ..\thirdparty\litehtml\src\gumbo\visualc\include /I ..\thirdparty\litehtml\src\gumbo\include\gumbo /I ..\thirdparty\litehtml\include /I ..\thirdparty\litehtml\include\litehtml /I F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\include\freetype2 /I F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\include\cairo 
 
 LDFLAGS_HTML2IMG=/libpath:"F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\lib" 
 
-LIBS_HTML2IMG=litehtml.lib libgd.lib freetype_a.lib libpng.lib libjpeg_a.lib libcrypto.lib 
+LIBS_HTML2IMG=litehtml.lib cairo.lib freetype.lib giflib5.lib libgif.lib libpng.lib libjpeg_a.lib gif.lib libcrypto.lib libpixman-1.lib libpng_a.lib gdi32.lib msimg32.lib libgio-2.0.lib 
 
 BUILD_DIRS_SUB=F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\x64\Release 
 
@@ -177,8 +177,8 @@ dump-tmp-env: set-tmp-env
 
 # objects for EXT html2img
 
-$(BUILD_DIR)\\cache.obj $(BUILD_DIR)\\ft_cache.obj $(BUILD_DIR)\\gd_canvas.obj $(BUILD_DIR)\\gd_container.obj $(BUILD_DIR)\\path_utils.obj $(BUILD_DIR)\\php_html2img.obj: F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\cache.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\ft_cache.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\gd_canvas.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\gd_container.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\path_utils.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\php_html2img.cpp
-	$(CC) $(CFLAGS_HTML2IMG_OBJ) $(CFLAGS) /Fo$(BUILD_DIR)\\ $(CFLAGS_BD_) /c F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\cache.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\ft_cache.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\gd_canvas.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\gd_container.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\path_utils.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\php_html2img.cpp 
+$(BUILD_DIR)\\cache.obj $(BUILD_DIR)\\cairo_canvas.obj $(BUILD_DIR)\\cairo_container.obj $(BUILD_DIR)\\ft_cache.obj $(BUILD_DIR)\\path_utils.obj $(BUILD_DIR)\\php_html2img.obj: F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\cache.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\cairo_canvas.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\cairo_container.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\ft_cache.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\path_utils.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\php_html2img.cpp
+	$(CC) $(CFLAGS_HTML2IMG_OBJ) $(CFLAGS) /Fo$(BUILD_DIR)\\ $(CFLAGS_BD_) /c F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\cache.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\cairo_canvas.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\cairo_container.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\ft_cache.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\path_utils.cpp F:\development\steam\emulator_bot\php_html2img_ext\php-8.4.10-devel-vs17-x64\src\php_html2img.cpp 
 
 $(BUILD_DIR)\php_html2img.dll.res: $(PHP_DIR)\build\template.rc
 	$(RC) /nologo  $(BASE_INCLUDES) /I $(PHP_DIR)/include /n /fo $(BUILD_DIR)\php_html2img.dll.res /d FILE_DESCRIPTION="\"php_html2img.dll\"" /d FILE_NAME="\"php_html2img.dll\"" /d URL="\"https://www.php.net\"" /d INTERNAL_NAME="\"HTML2IMG extension\"" /d THANKS_GUYS="\"\"" $(PHP_DIR)\build\template.rc

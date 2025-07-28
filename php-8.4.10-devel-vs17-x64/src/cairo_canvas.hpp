@@ -1,5 +1,6 @@
 #ifndef HTML2IMG_CAIRO_CANVAS_HPP
 #define HTML2IMG_CAIRO_CANVAS_HPP
+#define CAIRO_WIN32_STATIC_BUILD
 
 #include <cairo.h>
 #include <string>
