@@ -11,13 +11,13 @@ file_put_contents('out.png', $data);
 echo "Image saved to out.png\n";
 ```
 
-Ensure the extension is loaded:
+Ensure the extension is loaded and run the sample script:
 
 ```bash
 php -dextension=html2img.so run_sample.php
 ```
 
-You can also convert files directly from the command line:
+You can also convert files directly from the command line using `html2img_cli.php`:
 
 ```bash
 php -dextension=html2img.so demos/html2img_cli.php input.html output.png png
