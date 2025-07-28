@@ -27,6 +27,7 @@ if(PHP_INCLUDES)
         php-8.4.10-devel-vs17-x64/src/php_html2img.cpp
         php-8.4.10-devel-vs17-x64/src/cairo_canvas.cpp
         php-8.4.10-devel-vs17-x64/src/rml_cairo_renderer.cpp
+        php-8.4.10-devel-vs17-x64/src/rml_file_interface.cpp
         php-8.4.10-devel-vs17-x64/src/path_utils.cpp)
     target_link_libraries(html2img rmlui_core ${CAIRO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GIF_LIBRARIES} Freetype::Freetype OpenSSL::Crypto)
 endif()
@@ -36,6 +37,7 @@ if(BUILD_TESTS)
     add_executable(cairo_backend_test tests/cairo_backend_test.cpp
         php-8.4.10-devel-vs17-x64/src/cairo_canvas.cpp
         php-8.4.10-devel-vs17-x64/src/rml_cairo_renderer.cpp
+        php-8.4.10-devel-vs17-x64/src/rml_file_interface.cpp
         php-8.4.10-devel-vs17-x64/src/path_utils.cpp)
     target_link_libraries(cairo_backend_test rmlui_core ${CAIRO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GIF_LIBRARIES} Freetype::Freetype OpenSSL::Crypto gtest gtest_main)
     add_test(NAME cairo_backend_test COMMAND cairo_backend_test)
