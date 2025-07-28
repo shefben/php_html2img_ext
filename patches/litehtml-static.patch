@@ -1,5 +1,0 @@
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@
--add_library(litehtml ${HEADER_LITEHTML} ${SOURCE_LITEHTML})
-+add_library(litehtml STATIC ${HEADER_LITEHTML} ${SOURCE_LITEHTML})

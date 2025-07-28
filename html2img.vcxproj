@@ -22,14 +22,14 @@
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)obj\</IntDir>
     <TargetName>html2img</TargetName>
-    <IncludePath>$(PHP_PREFIX)\include;$(ProjectDir)3rdparty\litehtml\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(PHP_PREFIX)\include;$(ProjectDir)3rdparty\RmlUi\Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(PHP_PREFIX)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <Language>CPP</Language>
       <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-src\Zend;F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-devel-vs16-x64\include\freetype2;F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-devel-vs16-x64\libgd-2.3.3\src;F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-src\main;F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-devel-vs16-x64\include;F:\development\steam\emulator_bot\php_html2img_ext\thirdparty\litehtml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-src\Zend;F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-devel-vs16-x64\include\freetype2;F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-devel-vs16-x64\libgd-2.3.3\src;F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-src\main;F:\development\steam\emulator_bot\php_html2img_ext\php-8.2.29-devel-vs16-x64\include;F:\development\steam\emulator_bot\php_html2img_ext\thirdparty\RmlUi\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>php8.lib;gd.lib;freetype.lib;png.lib;jpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -50,16 +50,10 @@
     <Library Include="php-8.2.29-devel-vs16-x64\lib\zlib_a.lib" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="php-8.2.29-devel-vs16-x64\src\cache.hpp" />
-    <ClInclude Include="php-8.2.29-devel-vs16-x64\src\ft_cache.hpp" />
-    <ClInclude Include="php-8.2.29-devel-vs16-x64\src\gd_canvas.hpp" />
-    <ClInclude Include="php-8.2.29-devel-vs16-x64\src\gd_container.hpp" />
+    <ClInclude Include="php-8.2.29-devel-vs16-x64\src\rml_cairo_renderer.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="php-8.2.29-devel-vs16-x64\src\cache.cpp" />
-    <ClCompile Include="php-8.2.29-devel-vs16-x64\src\ft_cache.cpp" />
-    <ClCompile Include="php-8.2.29-devel-vs16-x64\src\gd_canvas.cpp" />
-    <ClCompile Include="php-8.2.29-devel-vs16-x64\src\gd_container.cpp" />
+    <ClCompile Include="php-8.2.29-devel-vs16-x64\src\rml_cairo_renderer.cpp" />
     <ClCompile Include="php-8.2.29-devel-vs16-x64\src\php_html2img.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

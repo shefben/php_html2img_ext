@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Clone litehtml and build the extension on Linux
+# Clone RmlUi and build the extension on Linux
 # Environment variables:
 #   PHP_PREFIX   - path prefix to phpize/php-config if not in PATH
 #   CAIRO_LIB    - path to libcairo.so (optional)
@@ -9,11 +9,11 @@
 #   GIF_LIB      - path to libgif.so (optional)
 set -euo pipefail
 
-LITEHTML_DIR=3rdparty/litehtml
-if [ ! -d "$LITEHTML_DIR" ]; then
-    git clone --depth=1 https://github.com/litehtml/litehtml.git "$LITEHTML_DIR"
-    (cd "$LITEHTML_DIR" && git submodule update --init --recursive)
-    patch -d "$LITEHTML_DIR" -p1 < patches/litehtml-static.patch
+RMLUI_DIR=3rdparty/RmlUi
+if [ ! -d "$RMLUI_DIR" ]; then
+    git clone --depth=1 https://github.com/mikke89/RmlUi.git "$RMLUI_DIR"
+    (cd "$RMLUI_DIR" && git submodule update --init --recursive)
+    sed -i 's/option(BUILD_SHARED_LIBS.*/option(BUILD_SHARED_LIBS "CMake standard option. Choose whether to build shared RmlUi libraries." OFF)/' "$RMLUI_DIR"/CMakeLists.txt
 fi
 
 PHPIZE=${PHP_PREFIX:+$PHP_PREFIX/bin/}phpize

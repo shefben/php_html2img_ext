@@ -18,34 +18,25 @@ pkg_check_modules(JPEG REQUIRED libjpeg)
 pkg_check_modules(GIF REQUIRED libgif)
 find_package(OpenSSL REQUIRED)
 
-add_subdirectory(3rdparty/litehtml)
-set_property(TARGET litehtml PROPERTY POSITION_INDEPENDENT_CODE ON)
+add_subdirectory(3rdparty/RmlUi)
+set_property(TARGET rmlui_core PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(PHP_INCLUDES)
-    include_directories(${PHP_INCLUDES} 3rdparty/litehtml/include ${CAIRO_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${JPEG_INCLUDE_DIRS} ${GIF_INCLUDE_DIRS})
+    include_directories(${PHP_INCLUDES} 3rdparty/RmlUi/Include ${CAIRO_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${JPEG_INCLUDE_DIRS} ${GIF_INCLUDE_DIRS})
     add_library(html2img SHARED
         php-8.4.10-devel-vs17-x64/src/php_html2img.cpp
         php-8.4.10-devel-vs17-x64/src/cairo_canvas.cpp
-        php-8.4.10-devel-vs17-x64/src/cairo_container.cpp
-        php-8.4.10-devel-vs17-x64/src/ft_cache.cpp
-        php-8.4.10-devel-vs17-x64/src/cache.cpp
+        php-8.4.10-devel-vs17-x64/src/rml_cairo_renderer.cpp
         php-8.4.10-devel-vs17-x64/src/path_utils.cpp)
-    target_link_libraries(html2img litehtml ${CAIRO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GIF_LIBRARIES} Freetype::Freetype OpenSSL::Crypto)
+    target_link_libraries(html2img rmlui_core ${CAIRO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GIF_LIBRARIES} Freetype::Freetype OpenSSL::Crypto)
 endif()
 
 if(BUILD_TESTS)
     enable_testing()
     add_executable(cairo_backend_test tests/cairo_backend_test.cpp
         php-8.4.10-devel-vs17-x64/src/cairo_canvas.cpp
-        php-8.4.10-devel-vs17-x64/src/cairo_container.cpp
-        php-8.4.10-devel-vs17-x64/src/ft_cache.cpp
-        php-8.4.10-devel-vs17-x64/src/cache.cpp
+        php-8.4.10-devel-vs17-x64/src/rml_cairo_renderer.cpp
         php-8.4.10-devel-vs17-x64/src/path_utils.cpp)
-    target_link_libraries(cairo_backend_test litehtml ${CAIRO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GIF_LIBRARIES} Freetype::Freetype OpenSSL::Crypto gtest gtest_main)
+    target_link_libraries(cairo_backend_test rmlui_core ${CAIRO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GIF_LIBRARIES} Freetype::Freetype OpenSSL::Crypto gtest gtest_main)
     add_test(NAME cairo_backend_test COMMAND cairo_backend_test)
-
-    add_test(NAME ConcurrentCacheTest
-             COMMAND php -dextension=$<TARGET_FILE:html2img> ${CMAKE_CURRENT_SOURCE_DIR}/tests/concurrent_cache.php)
-    add_test(NAME RelativePathFontTest
-             COMMAND php -dextension=$<TARGET_FILE:html2img> ${CMAKE_CURRENT_SOURCE_DIR}/tests/relative_font.php)
 endif()

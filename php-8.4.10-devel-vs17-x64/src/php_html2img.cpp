@@ -1,75 +1,32 @@
-#define LITEHTML_STD_VARIANT 1
-#define LITEHTML_STD_OPTIONAL 1
-#define LITEHTML_STD_FILESYSTEM 1
-#include <variant>
-#include <optional>
 #include <filesystem>
-#include <regex>
-#include <litehtml.h>   // or whatever header you use next
-
+#include <fstream>
 #include <php.h>
 #include <php_ini.h>
 #include <ext/standard/info.h>
 #include <Zend/zend_execute.h>
+#include <RmlUi/Core.h>
 #include "path_utils.hpp"
-#include <chrono>
 #include "cairo_canvas.hpp"
-#include "cairo_container.hpp"
-#include "cache.hpp"
-#include "php_html2img_arginfo.h"   /* add after other #includes */
-
+#include "rml_cairo_renderer.hpp"
+#include "php_html2img_arginfo.h"
 
 extern "C" {
-    static PHP_FUNCTION(html_css_to_image);
-    /* Required when building ZTS + static‑TLS extensions */
+    static PHP_FUNCTION(html_file_to_image);
     ZEND_TSRMLS_CACHE_DEFINE();
 }
-ZEND_BEGIN_MODULE_GLOBALS(html2img)
-    char *cache_dir;
-    zend_long ttl;
-    char *font_path;
-    zend_bool allow_remote;
-ZEND_END_MODULE_GLOBALS(html2img)
 
-ZEND_DECLARE_MODULE_GLOBALS(html2img)
-#define HTML2IMG_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(html2img, v)
-
-static void php_html2img_init_globals(zend_html2img_globals *g)
-{
-    g->cache_dir = nullptr;
-    g->ttl = 0;
-    g->font_path = nullptr;
-    g->allow_remote = 0;
-}
-
-
-zend_function_entry html2img_functions[] = {
-    /* replace ‘nullptr’ with the arginfo symbol */
-    PHP_FE(html_css_to_image, arginfo_html_css_to_image)
+static zend_function_entry html2img_functions[] = {
+    PHP_FE(html_file_to_image, arginfo_html_file_to_image)
     PHP_FE_END
 };
-PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("html2img.cache_dir", "", PHP_INI_ALL, OnUpdateString, cache_dir, zend_html2img_globals, html2img_globals)
-    STD_PHP_INI_ENTRY("html2img.ttl", "0", PHP_INI_ALL, OnUpdateLong, ttl, zend_html2img_globals, html2img_globals)
-    STD_PHP_INI_ENTRY("html2img.font_path", "./", PHP_INI_ALL, OnUpdateString, font_path, zend_html2img_globals, html2img_globals)
-    STD_PHP_INI_ENTRY("html2img.allow_remote", "0", PHP_INI_ALL, OnUpdateBool, allow_remote, zend_html2img_globals, html2img_globals)
-PHP_INI_END()
 
 PHP_MINIT_FUNCTION(html2img)
 {
-    ZEND_INIT_MODULE_GLOBALS(html2img, php_html2img_init_globals, nullptr);
-    REGISTER_INI_ENTRIES();
-    if(!HTML2IMG_G(cache_dir) || HTML2IMG_G(cache_dir)[0] == '\0') {
-        std::string d = default_cache_dir().string();
-        HTML2IMG_G(cache_dir) = strdup(d.c_str());
-    }
     return SUCCESS;
 }
 
 PHP_MSHUTDOWN_FUNCTION(html2img)
 {
-    UNREGISTER_INI_ENTRIES();
-    if(HTML2IMG_G(cache_dir)) free(HTML2IMG_G(cache_dir));
     return SUCCESS;
 }
 
@@ -97,83 +54,59 @@ zend_module_entry html2img_module_entry = {
 extern "C" ZEND_GET_MODULE(html2img)
 #endif
 
-PHP_FUNCTION(html_css_to_image)
+static std::filesystem::path script_base()
 {
-    zend_string *html;
-    zend_string *format = nullptr;
+    zend_string* exec = zend_get_executed_filename_ex();
+    std::filesystem::path p = exec ? html2img::from_file_uri(ZSTR_VAL(exec)) : std::filesystem::current_path();
+    if(!p.is_absolute())
+        p = std::filesystem::absolute(p);
+    return p.parent_path();
+}
 
-    ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_STR(html)
-        Z_PARAM_OPTIONAL
+PHP_FUNCTION(html_file_to_image)
+{
+    zend_string *html_path, *out_path, *format;
+
+    ZEND_PARSE_PARAMETERS_START(3,3)
+        Z_PARAM_STR(html_path)
+        Z_PARAM_STR(out_path)
         Z_PARAM_STR(format)
     ZEND_PARSE_PARAMETERS_END();
 
-    std::string fmt = format ? ZSTR_VAL(format) : "png";
-    std::string html_str(ZSTR_VAL(html), ZSTR_LEN(html));
+    std::filesystem::path base = script_base();
+    std::filesystem::path html_file = html2img::resolve_asset(ZSTR_VAL(html_path), base, false);
+    std::filesystem::path out_file  = html2img::resolve_asset(ZSTR_VAL(out_path), base, false);
+    std::string fmt = ZSTR_VAL(format);
 
-    std::string key = cache_key(html_str, fmt);
-    std::filesystem::path dir = HTML2IMG_G(cache_dir);
-    ensure_directory(dir);
-    std::filesystem::path file = dir / (key + "." + fmt);
-
-    auto now = std::chrono::system_clock::now();
-    if(std::filesystem::exists(file)) {
-        if(HTML2IMG_G(ttl) == 0) {
-            RETURN_STRING(file.string().c_str());
-        } else {
-            auto ft = std::filesystem::last_write_time(file);
-            auto exp = ft + std::chrono::seconds(HTML2IMG_G(ttl));
-            if(exp > std::filesystem::file_time_type::clock::now()) {
-                RETURN_STRING(file.string().c_str());
-            }
-        }
-    }
-
-    FileLock lock(dir / (key + ".lock"));
-    if(std::filesystem::exists(file)) {
-        RETURN_STRING(file.string().c_str());
-    }
-
-    CairoCanvas dummy(1,1,false);
-    std::filesystem::path script_dir;
+    std::ifstream in(html_file);
+    if(!in)
     {
-        zend_string *exec = zend_get_executed_filename_ex();
-        if(exec) {
-            std::filesystem::path abs = html2img::from_file_uri(ZSTR_VAL(exec));
-            if(!abs.is_absolute()) {
-                abs = std::filesystem::absolute(abs);
-            }
-            script_dir = abs.parent_path();
-        } else {
-            script_dir = std::filesystem::current_path();
-        }
+        php_error_docref(nullptr, E_WARNING, "Cannot open HTML file '%s'", ZSTR_VAL(html_path));
+        RETURN_FALSE;
     }
-    std::filesystem::path font_dir = html2img::resolve_asset(HTML2IMG_G(font_path), script_dir, false);
-    CairoContainer cont(dummy, script_dir, font_dir, HTML2IMG_G(allow_remote));
-    static const std::regex font_face_re("@font-face\\s*\\{[^}]*font-family:\\s*['\"]?([^;\"']+)['\"]?;[^}]*src:\\s*url\\(['\"]?([^\"')]+)['\"]?\)", std::regex::icase);
-    for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
-        std::string fam = (*it)[1].str();
-        std::filesystem::path p = html2img::from_file_uri((*it)[2].str());
-        cont.register_font(fam, p);
+    std::string html((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+    static bool init = false;
+    if(!init) { Rml::Initialise(); init = true; }
+
+    CairoCanvas canvas(800,600,true,0xFFFFFF);
+    CairoRenderInterface renderer(canvas);
+    Rml::SetRenderInterface(&renderer);
+    Rml::Context* context = Rml::CreateContext("php", Rml::Vector2i(800,600));
+    Rml::ElementDocument* doc = context->LoadDocumentFromMemory(html);
+    if(!doc) {
+        php_error_docref(nullptr, E_WARNING, "Failed to parse HTML");
+        RETURN_FALSE;
     }
+    doc->Show();
+    context->Update();
+    context->Render();
+    context->UnloadDocument(doc);
+    Rml::RemoveRenderInterface();
 
-    auto doc = litehtml::document::createFromString(html_str.c_str(), &cont);
-    doc->render(800);
-    int w = doc->width();
-    int h = doc->height();
+    canvas.export_image(out_file.string(), fmt);
 
-    CairoCanvas canvas(w? w:1, h? h:1, false);
-    CairoContainer cont2(canvas, script_dir, font_dir, HTML2IMG_G(allow_remote));
-    for(std::sregex_iterator it(html_str.begin(), html_str.end(), font_face_re), end; it!=end; ++it) {
-        std::string fam = (*it)[1].str();
-        std::filesystem::path p = html2img::from_file_uri((*it)[2].str());
-        cont2.register_font(fam, p);
-    }
-    doc = litehtml::document::createFromString(html_str.c_str(), &cont2);
-    doc->render(w);
-    litehtml::position clip(0,0,w,h);
-    doc->draw(0,0,0,&clip);
-    canvas.export_image(file.string(), fmt);
-
-    RETURN_STRING(file.string().c_str());
+    std::ifstream img(out_file, std::ios::binary);
+    std::string data((std::istreambuf_iterator<char>(img)), std::istreambuf_iterator<char>());
+    RETVAL_STRINGL(data.c_str(), data.size());
 }
