@@ -1,4 +1,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <canvas_ity.hpp>
+#include <vector>
 #include "cairo_canvas.hpp"
 #include <stdexcept>
 #include <stb_image_write.h>          // tiny header‑only encoders
@@ -43,3 +45,4 @@ bool CairoCanvas::export_image(const std::string& path,
        // return stbi_write_gif(path.c_str(), w, h, 4, buf, stride); // new API in ≥1.17
     return false;
 }
+

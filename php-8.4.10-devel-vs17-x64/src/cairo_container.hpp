@@ -7,6 +7,16 @@
 #include <vector>
 #include "cairo_canvas.hpp"
 
+/* Text shadow structure */
+struct TextShadow {
+    double offset_x;
+    double offset_y;
+    double blur_radius;
+    double red, green, blue, alpha;
+    
+    TextShadow() : offset_x(0), offset_y(0), blur_radius(0), red(0), green(0), blue(0), alpha(0) {}
+};
+
 /* one tiny struct = font handle */
 struct ToyFont {
     cairo_font_face_t* face;
@@ -83,4 +93,9 @@ private:
     std::filesystem::path           font_dir_;
     bool                            allow_remote_;
     std::vector<ToyFont*>           pool_;
+    
+    /* Helper functions for text shadow parsing */
+    std::vector<TextShadow> parse_text_shadow(const std::string& shadow_str);
+    void parse_css_color(const std::string& color_str, double& r, double& g, double& b, double& a);
+    std::string get_element_text_shadow(litehtml::uint_ptr hdc);
 };
