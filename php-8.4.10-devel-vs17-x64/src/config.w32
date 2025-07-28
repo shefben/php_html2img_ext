@@ -7,7 +7,7 @@ if (PHP_HTML2IMG != "no") {
 
     /* 1) Core sources (contain MINIT/MINFO/…) */
     EXTENSION("html2img",
-        "php_html2img.cpp gd_canvas.cpp gd_container.cpp cache.cpp ft_cache.cpp");
+        "php_html2img.cpp cairo_canvas.cpp cairo_container.cpp cache.cpp ft_cache.cpp");
 
     /* 2) Extra C++ sources */
     ADD_SOURCES("html2img",
@@ -22,7 +22,7 @@ if (PHP_HTML2IMG != "no") {
         '/libpath:"F:\\development\\steam\\emulator_bot\\php_html2img_ext\\php-8.4.10-devel-vs17-x64\\lib"');
 
     ADD_FLAG("LIBS_HTML2IMG",
-        "litehtml.lib libgd.lib freetype_a.lib libpng.lib libjpeg_a.lib libcrypto.lib ");
+        "litehtml.lib freetype_a.lib cairo.lib");
 
     AC_DEFINE("HAVE_HTML2IMG", 1, "Have html2img");
 }

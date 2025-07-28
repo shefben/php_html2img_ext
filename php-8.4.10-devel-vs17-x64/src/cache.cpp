@@ -1,5 +1,4 @@
 #include "cache.hpp"
-#include <openssl/sha.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
@@ -46,20 +45,35 @@ static void unlock_file(int fd_or_handle)
 }
 
 
+/* ------------------------------------------------------------------ */
+/*  Tiny dependency‑free hash – FNV‑1a 64‑bit                          */
+/* ------------------------------------------------------------------ */
+static uint64_t fnv1a_64(const void* data, size_t len)
+{
+    const uint8_t* p = static_cast<const uint8_t*>(data);
+    uint64_t h = 0xcbf29ce484222325ull;          // offset basis
+    for(size_t i=0;i<len;++i){
+        h ^= p[i];
+        h *= 0x100000001b3ull;                  // FNV prime
+    }
+    return h;
+}
+
 std::string cache_key(const std::string &html, const std::string &format)
 {
     std::string data = html + format + "html2img-0.1";
-    unsigned char digest[SHA_DIGEST_LENGTH];
-    SHA1(reinterpret_cast<const unsigned char*>(data.data()), data.size(), digest);
+    uint64_t h = fnv1a_64(data.data(), data.size());
+
+    /* hex‑encode the 64‑bit result */
     static const char hex[] = "0123456789abcdef";
-    std::string out; out.reserve(SHA_DIGEST_LENGTH*2);
-    for(unsigned char c: digest) {
-        out.push_back(hex[c>>4]);
-        out.push_back(hex[c&0xF]);
+    std::string out; out.reserve(16);
+    for(int i=56;i>=0;i-=8){
+        uint8_t byte = static_cast<uint8_t>(h >> i);
+        out.push_back(hex[byte >> 4]);
+        out.push_back(hex[byte & 0xF]);
     }
     return out;
 }
-
 std::filesystem::path default_cache_dir()
 {
 #ifdef _WIN32

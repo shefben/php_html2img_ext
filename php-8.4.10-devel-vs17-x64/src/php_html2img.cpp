@@ -11,8 +11,8 @@
 #include <ext/standard/info.h>
 #include <filesystem>
 #include <chrono>
-#include "gd_canvas.hpp"
-#include "gd_container.hpp"
+#include "cairo_canvas.hpp"
+#include "cairo_container.hpp"
 #include "cache.hpp"
 #include "php_html2img_arginfo.h"   /* add after other #includes */
 
@@ -131,17 +131,18 @@ PHP_FUNCTION(html_css_to_image)
         RETURN_STRING(file.string().c_str());
     }
 
-    GDCanvas dummy(1,1,false);
+    CairoCanvas dummy(1,1,false);
     std::filesystem::path cwd = std::filesystem::current_path();
-    GDContainer cont(dummy, cwd, HTML2IMG_G(font_path), HTML2IMG_G(allow_remote));
+    CairoContainer cont(dummy, cwd, HTML2IMG_G(font_path), HTML2IMG_G(allow_remote));
+
 
     auto doc = litehtml::document::createFromString(html_str.c_str(), &cont);
     doc->render(800);
     int w = doc->width();
     int h = doc->height();
 
-    GDCanvas canvas(w? w:1, h? h:1, false);
-    GDContainer cont2(canvas, cwd, HTML2IMG_G(font_path), HTML2IMG_G(allow_remote));
+    CairoCanvas canvas(w? w:1, h? h:1, false);
+    CairoContainer cont2(canvas, cwd, HTML2IMG_G(font_path), HTML2IMG_G(allow_remote));
     doc = litehtml::document::createFromString(html_str.c_str(), &cont2);
     doc->render(w);
     litehtml::position clip(0,0,w,h);
